@@ -36,6 +36,7 @@ impl Log for Logger {
 
 /// Initialize a new logger.
 pub fn init(level: Level) -> Result<(), SetLoggerError> {
+//    let level = Level::Trace;
     let logger = Logger { level };
 
     log::set_boxed_logger(Box::new(logger))?;

@@ -31,6 +31,7 @@ use network::message_blockdata;
 use network::message_filter;
 use consensus::encode::{CheckedData, Decodable, Encodable, VarInt, MAX_VEC_SIZE};
 use consensus::{encode, serialize};
+use blockdata::block::MTP_DATA_SIZE;
 
 /// The maximum number of [super::message_blockdata::Inventory] items in an `inv` message.
 ///
@@ -321,15 +322,54 @@ impl Decodable for HeaderDeserializationWrapper {
             return Err(encode::Error::OversizedVectorAllocation { requested: byte_size, max: MAX_VEC_SIZE })
         }
         let mut ret = Vec::with_capacity(len as usize);
-        for _ in 0..len {
-            ret.push(Decodable::consensus_decode(&mut d)?);
+        for _i in 0..len {
+            let cbh : block::ClassicBlockHeader = Decodable::consensus_decode(&mut d)?;
+            let mut bh = block::BlockHeader {
+                version: cbh.version,
+                prev_blockhash: cbh.prev_blockhash,
+                merkle_root: cbh.merkle_root,
+                time: cbh.time,
+                bits: cbh.bits,
+                nonce: cbh.nonce,
+                extra_data: [0; MTP_DATA_SIZE],
+            };
+
+            if cbh.version == 0x20001000 {
+                for i in 0..100 {
+                    bh.extra_data[i] = u8::consensus_decode(&mut d)?;
+                }
+            }
+            ret.push(bh);
             if u8::consensus_decode(&mut d)? != 0u8 {
+                eprint!("prev_blockhash: {}", bh.prev_blockhash);
                 return Err(encode::Error::ParseFailed("Headers message should not contain transactions"));
             }
         }
         Ok(HeaderDeserializationWrapper(ret))
     }
 }
+
+
+struct BlockDeserializationWrapper(block::Block);
+
+impl Decodable for BlockDeserializationWrapper {
+    #[inline]
+    fn consensus_decode<D: io::Read>(mut d: D) -> Result<Self, encode::Error> {
+        let hdr = block::BlockHeader::consensus_decode(&mut d)?;
+        if hdr.has_mtp_data() {
+            for _ in 0..198864 {
+                <u8>::consensus_decode(&mut d)?;
+            }
+        }
+        let txs = Vec::<transaction::Transaction>::consensus_decode(&mut d)?;
+        let blk = block::Block{
+            header: hdr,
+            txdata: txs,
+        };
+        Ok(BlockDeserializationWrapper(blk))
+    }
+}
+
 
 impl Decodable for RawNetworkMessage {
     fn consensus_decode<D: io::Read>(mut d: D) -> Result<Self, encode::Error> {
@@ -348,7 +388,9 @@ impl Decodable for RawNetworkMessage {
             "getblocks" => NetworkMessage::GetBlocks(Decodable::consensus_decode(&mut mem_d)?),
             "getheaders" => NetworkMessage::GetHeaders(Decodable::consensus_decode(&mut mem_d)?),
             "mempool" => NetworkMessage::MemPool,
-            "block"   => NetworkMessage::Block(Decodable::consensus_decode(&mut mem_d)?),
+            "block"   => NetworkMessage::Block(
+                BlockDeserializationWrapper::consensus_decode(&mut mem_d)?.0
+            ),
             "headers" => NetworkMessage::Headers(
                 HeaderDeserializationWrapper::consensus_decode(&mut mem_d)?.0
             ),

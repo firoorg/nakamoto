@@ -14,8 +14,8 @@ nakamoto-client = { version = "0.2.0", path = "../client" }
 nakamoto-net-poll = { version = "0.2.0", path = "../net/poll" }
 nakamoto-p2p = { version = "0.2.0", path = "../p2p" }
 nakamoto-common = { version = "0.2.0", path = "../common" }
-bitcoin = { version = "0.26.0" }
-log = { version = "0.4", features = ["std"] }
+bitcoin = { version = "0.26.0", path = "../bitcoin" }
+log = { version = "0.4", features = ["std", "max_level_trace"] }
 argh = { version = "0.1.3" }
 crossbeam-channel = { version = "0.4" }
 chrono = { version = "0.4" }

@@ -451,7 +451,7 @@ impl MerkleBlock {
 
         let pmt = PartialMerkleTree::from_txids(&block_txids, &matches);
         MerkleBlock {
-            header: *header,
+            header: header.clone(),
             txn: pmt,
         }
     }

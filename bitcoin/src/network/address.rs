@@ -78,7 +78,8 @@ impl Encodable for Address {
         &self,
         mut s: S,
     ) -> Result<usize, io::Error> {
-        let len = self.services.consensus_encode(&mut s)?
+        let len = 1u32.consensus_encode(&mut s)?
+            + self.services.consensus_encode(&mut s)?
             + addr_to_be(self.address).consensus_encode(&mut s)?
             + self.port.to_be().consensus_encode(s)?;
         Ok(len)
@@ -88,6 +89,7 @@ impl Encodable for Address {
 impl Decodable for Address {
     #[inline]
     fn consensus_decode<D: io::Read>(mut d: D) -> Result<Self, encode::Error> {
+        let _dummy : u32 = Decodable::consensus_decode(&mut d)?;
         Ok(Address {
             services: Decodable::consensus_decode(&mut d)?,
             address: addr_to_be(Decodable::consensus_decode(&mut d)?),

@@ -194,10 +194,10 @@ impl<S: Store<Header = BlockHeader>> BlockCache<S> {
         let target = header.target();
         match header.validate_pow(&target) {
             Ok(_) => {
-                let limit = self.params.pow_limit;
-                if target > limit {
-                    return Err(Error::InvalidBlockTarget(target, limit));
-                }
+//                let limit = self.params.pow_limit;
+//                if target > limit {
+//                    return Err(Error::InvalidBlockTarget(target, limit));
+//                }
             }
             Err(bitcoin::util::Error::BlockBadProofOfWork) => {
                 return Err(Error::InvalidBlockPoW);

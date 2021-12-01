@@ -322,6 +322,7 @@ impl<U: Handshake + SetTimeout + Connect + Disconnect + Events> PeerManager<U> {
             }
             Link::Outbound => {
                 let nonce = self.rng.u64(..);
+                eprintln!("Time: {}, Nonce: {}", local_time, nonce);
                 self.upstream.version(
                     addr,
                     self.version(addr, local_addr, nonce, height, local_time),
@@ -475,13 +476,13 @@ impl<U: Handshake + SetTimeout + Connect + Disconnect + Events> PeerManager<U> {
                             conn.socket.addr,
                             self.version(conn.socket.addr, conn.local_addr, nonce, height, now),
                         )
-                        .wtxidrelay(conn.socket.addr)
+                        //.wtxidrelay(conn.socket.addr)
                         .verack(conn.socket.addr)
                         .set_timeout(HANDSHAKE_TIMEOUT);
                 }
                 Link::Outbound => {
                     self.upstream
-                        .wtxidrelay(conn.socket.addr)
+                        //.wtxidrelay(conn.socket.addr)
                         .verack(conn.socket.addr)
                         .set_timeout(HANDSHAKE_TIMEOUT);
                 }

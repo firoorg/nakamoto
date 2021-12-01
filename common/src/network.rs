@@ -65,9 +65,9 @@ impl Network {
     /// Return the default listen port for the network.
     pub fn port(&self) -> u16 {
         match self {
-            Network::Mainnet => 8333,
-            Network::Testnet => 18333,
-            Network::Regtest => 18334,
+            Network::Mainnet => 8168,
+            Network::Testnet => 18168,
+            Network::Regtest => 38168,
         }
     }
 
@@ -115,10 +115,7 @@ impl Network {
                 "seed.cloudhead.io",             // Alexis Sellier
             ],
             Network::Testnet => &[
-                "testnet-seed.bitcoin.jonasschnelli.ch",
-                "seed.tbtc.petertodd.org",
-                "seed.testnet.bitcoin.sprovoost.nl",
-                "testnet-seed.bluematt.me",
+                "localhost",
             ],
             Network::Regtest => &[], // No seeds
         }
@@ -170,6 +167,10 @@ impl Network {
 
     /// Get the network magic number for this network.
     pub fn magic(&self) -> u32 {
-        bitcoin::Network::from(*self).magic()
+        match self {
+            Network::Mainnet => 0xD9B4BEF9,
+            Network::Testnet => 0xEABEFCCF,
+            Network::Regtest => 0xDAB5BFFA,
+        }
     }
 }

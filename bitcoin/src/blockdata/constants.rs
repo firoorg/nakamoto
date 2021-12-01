@@ -21,12 +21,12 @@
 
 use std::default::Default;
 
-use hashes::hex::FromHex;
+//use hashes::hex::FromHex;
 use hashes::sha256d;
-use blockdata::opcodes;
+//use blockdata::opcodes;
 use blockdata::script;
 use blockdata::transaction::{OutPoint, Transaction, TxOut, TxIn};
-use blockdata::block::{Block, BlockHeader};
+use blockdata::block::{Block, BlockHeader, MTP_DATA_SIZE};
 use network::constants::Network;
 use util::uint::Uint256;
 
@@ -71,11 +71,15 @@ fn bitcoin_genesis_tx() -> Transaction {
         output: vec![],
     };
 
+    let extra_nonce: [u8; 4] = [9, 0, 0, 0];
     // Inputs
-    let in_script = script::Builder::new().push_scriptint(486604799)
+    let in_script = script::Builder::new().push_scriptint(504365040)
                                           .push_scriptint(4)
-                                          .push_slice(b"The Times 03/Jan/2009 Chancellor on brink of second bailout for banks")
+                                          .push_slice(b"Times 2014/10/31 Maine Judge Says Nurse Must Follow Ebola Quarantine for Now")
+        .push_slice(&extra_nonce)
                                           .into_script();
+
+
     ret.input.push(TxIn {
         previous_output: OutPoint::null(),
         script_sig: in_script,
@@ -85,11 +89,11 @@ fn bitcoin_genesis_tx() -> Transaction {
 
     // Outputs
     let out_script = script::Builder::new()
-        .push_slice(&Vec::from_hex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f").unwrap())
-        .push_opcode(opcodes::all::OP_CHECKSIG)
+//        .push_slice(&Vec::from_hex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f").unwrap())
+//        .push_opcode(opcodes::all::OP_CHECKSIG)
         .into_script();
     ret.output.push(TxOut {
-        value: 50 * COIN_VALUE,
+        value: 0 * COIN_VALUE,
         script_pubkey: out_script
     });
 
@@ -111,7 +115,8 @@ pub fn genesis_block(network: Network) -> Block {
                     merkle_root,
                     time: 1231006505,
                     bits: 0x1d00ffff,
-                    nonce: 2083236893
+                    nonce: 2083236893,
+                    extra_data: [0; MTP_DATA_SIZE]
                 },
                 txdata: txdata
             }
@@ -119,12 +124,13 @@ pub fn genesis_block(network: Network) -> Block {
         Network::Testnet => {
             Block {
                 header: BlockHeader {
-                    version: 1,
+                    version: 2,
                     prev_blockhash: Default::default(),
                     merkle_root,
-                    time: 1296688602,
-                    bits: 0x1d00ffff,
-                    nonce: 414098458
+                    time: 1414776286,
+                    bits: 0x1e0ffff0,
+                    nonce: 3577337,
+                    extra_data: [0; MTP_DATA_SIZE]
                 },
                 txdata: txdata
             }
@@ -137,7 +143,8 @@ pub fn genesis_block(network: Network) -> Block {
                     merkle_root,
                     time: 1598918400,
                     bits: 0x1e0377ae,
-                    nonce: 52613770
+                    nonce: 52613770,
+                    extra_data: [0; MTP_DATA_SIZE]
                 },
                 txdata: txdata
             }
@@ -150,7 +157,8 @@ pub fn genesis_block(network: Network) -> Block {
                     merkle_root,
                     time: 1296688602,
                     bits: 0x207fffff,
-                    nonce: 2
+                    nonce: 2,
+                    extra_data: [0; MTP_DATA_SIZE]
                 },
                 txdata: txdata
             }
@@ -208,15 +216,15 @@ mod test {
     #[test]
     fn testnet_genesis_full_block() {
         let gen = genesis_block(Network::Testnet);
-        assert_eq!(gen.header.version, 1);
+        assert_eq!(gen.header.version, 2);
         assert_eq!(gen.header.prev_blockhash, Default::default());
         assert_eq!(format!("{:x}", gen.header.merkle_root),
-                  "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b".to_string());
-        assert_eq!(gen.header.time, 1296688602);
-        assert_eq!(gen.header.bits, 0x1d00ffff);
-        assert_eq!(gen.header.nonce, 414098458);
+                  "f70dba2d976778b985de7b5503ede884988d78fbb998d6969e4f676b40b9a741".to_string());
+        assert_eq!(gen.header.time, 1414776286);
+        assert_eq!(gen.header.bits, 0x1e0ffff0);
+        assert_eq!(gen.header.nonce, 3577337);
         assert_eq!(format!("{:x}", gen.header.block_hash()),
-                   "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943".to_string());
+                   "aa22adcc12becaf436027ffe62a8fb21b234c58c23865291e5dc52cf53f64fca".to_string());
     }
 
     #[test]

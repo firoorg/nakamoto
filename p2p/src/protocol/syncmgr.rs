@@ -434,13 +434,12 @@ impl<U: SetTimeout + Disconnect + SyncHeaders> SyncManager<U> {
         on_timeout: OnTimeout,
     ) {
         // Don't request more than once from the same peer.
-        if self.inflight.contains_key(&addr) {
-            return;
-        }
+//        if self.inflight.contains_key(&addr) {
+//            return;
+//        }
         if let Some(peer) = self.peers.get_mut(&addr) {
-            debug_assert!(peer.last_asked.as_ref() != Some(&locators));
-
-            peer.last_asked = Some(locators.clone());
+            //debug_assert!(peer.last_asked.as_ref() != Some(&locators));
+            //peer.last_asked = Some(locators.clone());
 
             let req = GetHeaders {
                 locators,

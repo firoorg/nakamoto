@@ -168,6 +168,7 @@ impl pingmgr::Ping for Channel {
 
 impl syncmgr::SyncHeaders for Channel {
     fn get_headers(&self, addr: PeerId, (locator_hashes, stop_hash): Locators) {
+
         let msg = NetworkMessage::GetHeaders(GetHeadersMessage {
             version: self.version,
             // Starting hashes, highest heights first.

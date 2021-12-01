@@ -23,7 +23,7 @@
 use std::fmt;
 
 use util;
-use util::Error::{BlockBadTarget, BlockBadProofOfWork};
+//use util::Error::{BlockBadTarget, BlockBadProofOfWork};
 use util::hash::bitcoin_merkle_root;
 use hashes::{Hash, HashEngine};
 use hash_types::{Wtxid, BlockHash, TxMerkleNode, WitnessMerkleNode, WitnessCommitment};
@@ -34,6 +34,10 @@ use blockdata::transaction::Transaction;
 use blockdata::constants::{max_target, WITNESS_SCALE_FACTOR};
 use blockdata::script;
 use VarInt;
+
+/// MTP data addition to standard header
+pub const MTP_DATA_SIZE: usize = 100;
+pub const PROGPOW_DATA_SIZE: usize = 40;
 
 /// A block header, which contains all the block's information except
 /// the actual transactions
@@ -53,16 +57,83 @@ pub struct BlockHeader {
     pub bits: u32,
     /// The nonce, selected to obtain a low enough blockhash
     pub nonce: u32,
+    /// The mtp data
+    pub extra_data: [u8; 100],
 }
+impl_consensus_encoding!(BlockHeader, version, prev_blockhash, merkle_root, time, bits, nonce, extra_data);
 
-impl_consensus_encoding!(BlockHeader, version, prev_blockhash, merkle_root, time, bits, nonce);
+/// A block header, which contains all the block's information except
+/// the actual transactions
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ClassicBlockHeader {
+    /// The protocol version. Should always be 1.
+    pub version: i32,
+    /// Reference to the previous block in the chain
+    pub prev_blockhash: BlockHash,
+    /// The root hash of the merkle tree of transactions in the block
+    pub merkle_root: TxMerkleNode,
+    /// The timestamp of the block, as claimed by the miner
+    pub time: u32,
+    /// The target value below which the blockhash must lie, encoded as a
+    /// a float (with well-defined rounding, of course)
+    pub bits: u32,
+    /// The nonce, selected to obtain a low enough blockhash
+    pub nonce: u32,
+}
+impl_consensus_encoding!(ClassicBlockHeader, version, prev_blockhash, merkle_root, time, bits, nonce);
+
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct ProgpowBlockHeader {
+    /// The protocol version. Should always be 1.
+    pub version: i32,
+    /// Reference to the previous block in the chain
+    pub prev_blockhash: BlockHash,
+    /// The root hash of the merkle tree of transactions in the block
+    pub merkle_root: TxMerkleNode,
+    /// The timestamp of the block, as claimed by the miner
+    pub time: u32,
+    /// The target value below which the blockhash must lie, encoded as a
+    /// a float (with well-defined rounding, of course)
+    pub bits: u32,
+    /// Progpow
+    /// The nonce, selected to obtain a low enough blockhash
+    pub nonce: u32,
+    /// progpow extra
+    pub extra_data: [u8; PROGPOW_DATA_SIZE],
+}
+impl_consensus_encoding!(ProgpowBlockHeader, version, prev_blockhash, merkle_root, time, bits, extra_data);
+
 
 impl BlockHeader {
+
+    /// returns true if has mtp data
+    pub fn has_mtp_data(&self) -> bool {
+        let mut all0:u8 = 0;
+        for _i in 0..MTP_DATA_SIZE {
+            all0 |= self.extra_data[_i];
+        };
+        return all0 != 0;
+    }
+
     /// Return the block hash.
     pub fn block_hash(&self) -> BlockHash {
         let mut engine = BlockHash::engine();
-        self.consensus_encode(&mut engine).expect("engines don't error");
-        BlockHash::from_engine(engine)
+
+        if !self.has_mtp_data() {
+            let cbh = ClassicBlockHeader {
+                version: self.version,
+                prev_blockhash: self.prev_blockhash,
+                merkle_root: self.merkle_root,
+                time: self.time,
+                bits: self.bits,
+                nonce: self.nonce,
+            };
+            cbh.consensus_encode(&mut engine).expect("engines don't error");
+        } else {
+            self.consensus_encode(&mut engine).expect("engines don't error");
+        }
+        let hash = BlockHash::from_engine(engine);
+        return hash;
     }
 
     /// Computes the target [0, T] that a blockhash must land in to be valid
@@ -130,15 +201,17 @@ impl BlockHeader {
 
     /// Checks that the proof-of-work for the block is valid, returning the block hash.
     pub fn validate_pow(&self, required_target: &Uint256) -> Result<BlockHash, util::Error> {
-        let target = &self.target();
-        if target != required_target {
-            return Err(BlockBadTarget);
-        }
         let block_hash = self.block_hash();
-        let mut ret = [0u64; 4];
-        util::endian::bytes_to_u64_slice_le(block_hash.as_inner(), &mut ret);
-        let hash = &Uint256(ret);
-        if hash <= target { Ok(block_hash) } else { Err(BlockBadProofOfWork) }
+        return Ok(block_hash);
+//        let target = &self.target();
+//        if target != required_target {
+//            return Err(BlockBadTarget);
+//        }
+//        let block_hash = self.block_hash();
+//        let mut ret = [0u64; 4];
+//        util::endian::bytes_to_u64_slice_le(block_hash.as_inner(), &mut ret);
+//        let hash = &Uint256(ret);
+//        if hash <= target { Ok(block_hash) } else { Err(BlockBadProofOfWork) }
     }
 
     /// Returns the total work of the block

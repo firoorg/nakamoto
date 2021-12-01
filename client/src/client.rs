@@ -238,10 +238,7 @@ impl<R: Reactor<Publisher>> Client<R> {
         let params = self.config.network.params();
 
         log::info!("Initializing client ({:?})..", self.config.network);
-        log::info!(
-            "Genesis block hash is {}",
-            self.config.network.genesis_hash()
-        );
+        log::info!("Genesis block hash is {}, {}", self.config.network.genesis_hash(), self.config.network.genesis_block().block_hash());
 
         let path = dir.join("headers.db");
         let store = match store::File::create(&path, genesis) {

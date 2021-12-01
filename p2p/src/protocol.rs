@@ -57,10 +57,10 @@ use nakamoto_common::p2p::{peer, Domain};
 use thiserror::Error;
 
 /// Peer-to-peer protocol version.
-pub const PROTOCOL_VERSION: u32 = 70016;
+pub const PROTOCOL_VERSION: u32 = 90030;
 /// Minimum supported peer protocol version.
 /// This version includes support for the `sendheaders` feature.
-pub const MIN_PROTOCOL_VERSION: u32 = 70012;
+pub const MIN_PROTOCOL_VERSION: u32 = 90026;
 /// User agent included in `version` messages.
 pub const USER_AGENT: &str = "/nakamoto:0.2.0/";
 

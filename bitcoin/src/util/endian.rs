@@ -87,6 +87,11 @@ pub fn i64_to_array_le(val: i64) -> [u8; 8] {
     u64_to_array_le(val as u64)
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+
 macro_rules! define_chunk_slice_to_int {
     ($name: ident, $type: ty, $converter: ident) => {
         #[inline]
@@ -100,9 +105,6 @@ macro_rules! define_chunk_slice_to_int {
 }
 define_chunk_slice_to_int!(bytes_to_u64_slice_le, u64, slice_to_u64_le);
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
     #[test]
     fn endianness_test() {

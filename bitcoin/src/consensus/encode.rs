@@ -525,6 +525,7 @@ impl_array!(12);
 impl_array!(16);
 impl_array!(32);
 impl_array!(33);
+impl_array!(100);
 
 impl Decodable for [u16; 8] {
     #[inline]

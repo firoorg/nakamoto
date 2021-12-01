@@ -101,7 +101,7 @@ type Reactor = nakamoto_net_poll::Reactor<net::TcpStream, client::Publisher>;
 pub fn run(addresses: Vec<Address>, birth: Height) -> Result<(), Error> {
     let cfg = Config {
         listen: vec![], // Don't listen for incoming connections.
-        network: Network::Mainnet,
+        network: Network::Testnet,
         ..Config::default()
     };
 

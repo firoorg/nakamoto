@@ -21,7 +21,6 @@ pub const MAINNET: &[(u64, &str)] = &[
 /// Testnet checkpoints.
 #[rustfmt::skip]
 pub const TESTNET: &[(u64, &str)] = &[
-    (546, "000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70"),
 ];
 
 /// Regtest checkpoints.
