@@ -31,7 +31,7 @@ use network::message_blockdata;
 use network::message_filter;
 use consensus::encode::{CheckedData, Decodable, Encodable, VarInt, MAX_VEC_SIZE};
 use consensus::{encode, serialize};
-use blockdata::block::MTP_DATA_SIZE;
+use blockdata::block::{MTP_DATA_SIZE, PROGPOW_DATA_SIZE};
 
 /// The maximum number of [super::message_blockdata::Inventory] items in an `inv` message.
 ///
@@ -334,9 +334,16 @@ impl Decodable for HeaderDeserializationWrapper {
                 extra_data: [0; MTP_DATA_SIZE],
             };
 
-            if cbh.version == 0x20001000 {
-                for i in 0..100 {
-                    bh.extra_data[i] = u8::consensus_decode(&mut d)?;
+            if cbh.version == 0x20001000
+            {
+                if cbh.time > 1630069137 {
+                    for i in 0..PROGPOW_DATA_SIZE {
+                        bh.extra_data[i] = u8::consensus_decode(&mut d)?;
+                    }
+                } else {
+                    for i in 0..MTP_DATA_SIZE {
+                        bh.extra_data[i] = u8::consensus_decode(&mut d)?;
+                    }
                 }
             }
             ret.push(bh);
@@ -356,7 +363,7 @@ impl Decodable for BlockDeserializationWrapper {
     #[inline]
     fn consensus_decode<D: io::Read>(mut d: D) -> Result<Self, encode::Error> {
         let hdr = block::BlockHeader::consensus_decode(&mut d)?;
-        if hdr.has_mtp_data() {
+        if hdr.is_mtp() {
             for _ in 0..198864 {
                 <u8>::consensus_decode(&mut d)?;
             }

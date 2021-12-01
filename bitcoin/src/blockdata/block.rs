@@ -37,7 +37,9 @@ use VarInt;
 
 /// MTP data addition to standard header
 pub const MTP_DATA_SIZE: usize = 100;
+/// ProgPow data addition to standard header
 pub const PROGPOW_DATA_SIZE: usize = 40;
+
 
 /// A block header, which contains all the block's information except
 /// the actual transactions
@@ -82,6 +84,8 @@ pub struct ClassicBlockHeader {
 }
 impl_consensus_encoding!(ClassicBlockHeader, version, prev_blockhash, merkle_root, time, bits, nonce);
 
+
+/// A Firo ProgPow block header
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ProgpowBlockHeader {
     /// The protocol version. Should always be 1.
@@ -101,25 +105,42 @@ pub struct ProgpowBlockHeader {
     /// progpow extra
     pub extra_data: [u8; PROGPOW_DATA_SIZE],
 }
-impl_consensus_encoding!(ProgpowBlockHeader, version, prev_blockhash, merkle_root, time, bits, extra_data);
+impl_consensus_encoding!(ProgpowBlockHeader, version, prev_blockhash, merkle_root, time, bits, nonce, extra_data);
 
 
 impl BlockHeader {
 
-    /// returns true if has mtp data
-    pub fn has_mtp_data(&self) -> bool {
-        let mut all0:u8 = 0;
-        for _i in 0..MTP_DATA_SIZE {
-            all0 |= self.extra_data[_i];
-        };
-        return all0 != 0;
+    /// block is mtp
+    pub fn is_mtp(&self) -> bool {
+        return self.version == 0x20001000 && self.time < 1630069200;
+    }
+
+    /// block is progpow
+    pub fn is_progpow(&self) -> bool {
+        return self.version == 0x20001000 && self.time >= 1630069200;
     }
 
     /// Return the block hash.
     pub fn block_hash(&self) -> BlockHash {
         let mut engine = BlockHash::engine();
 
-        if !self.has_mtp_data() {
+        if self.is_mtp() {
+            self.consensus_encode(&mut engine).expect("engines don't error");
+        } else if self.is_progpow() {
+            let mut ppbh = ProgpowBlockHeader {
+                version: self.version,
+                prev_blockhash: self.prev_blockhash,
+                merkle_root: self.merkle_root,
+                time: self.time,
+                bits: self.bits,
+                nonce: self.nonce,
+                extra_data: [0; PROGPOW_DATA_SIZE],
+            };
+            for i in 0..PROGPOW_DATA_SIZE {
+                ppbh.extra_data[i] = self.extra_data[i];
+            }
+            ppbh.consensus_encode(&mut engine).expect("engines don't error");
+        } else {
             let cbh = ClassicBlockHeader {
                 version: self.version,
                 prev_blockhash: self.prev_blockhash,
@@ -129,8 +150,6 @@ impl BlockHeader {
                 nonce: self.nonce,
             };
             cbh.consensus_encode(&mut engine).expect("engines don't error");
-        } else {
-            self.consensus_encode(&mut engine).expect("engines don't error");
         }
         let hash = BlockHash::from_engine(engine);
         return hash;
