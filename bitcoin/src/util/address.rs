@@ -499,11 +499,11 @@ impl FromStr for Address {
                 Network::Bitcoin,
                 Payload::ScriptHash(ScriptHash::from_slice(&data[1..]).unwrap()),
             ),
-            111 => (
+            65 => (
                 Network::Testnet,
                 Payload::PubkeyHash(PubkeyHash::from_slice(&data[1..]).unwrap()),
             ),
-            196 => (
+            178 => (
                 Network::Testnet,
                 Payload::ScriptHash(ScriptHash::from_slice(&data[1..]).unwrap()),
             ),
