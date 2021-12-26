@@ -35,7 +35,7 @@ pub const REQUIRED_SERVICES: ServiceFlags = ServiceFlags::COMPACT_FILTERS;
 pub const MAX_MESSAGE_CFHEADERS: usize = 2000;
 
 /// Maximum filters to be expected in a message.
-pub const MAX_MESSAGE_CFILTERS: usize = 1000;
+pub const MAX_MESSAGE_CFILTERS: usize = 600;
 
 /// Filter cache capacity in bytes.
 pub const DEFAULT_FILTER_CACHE_SIZE: usize = 1024 * 1024; // 1 MB.

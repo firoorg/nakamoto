@@ -115,7 +115,8 @@ impl Network {
                 "seed.cloudhead.io",             // Alexis Sellier
             ],
             Network::Testnet => &[
-                "localhost",
+                "evo1.zcoin.io",
+                "evo2.zcoin.io",
             ],
             Network::Regtest => &[], // No seeds
         }

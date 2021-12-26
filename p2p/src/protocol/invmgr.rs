@@ -475,9 +475,9 @@ impl<U: Inventories + SetTimeout> InventoryManager<U> {
 
         // If there are still blocks remaining to download, don't process any of the
         // received queue yet.
-        if !self.remaining.is_empty() {
-            return vec![];
-        }
+//        if !self.remaining.is_empty() {
+//            return vec![];
+//        }
 
         // Now that all blocks to be processed are downloaded, we can start
         // processing them in order.

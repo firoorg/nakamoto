@@ -51,6 +51,8 @@ impl<H: Handle> Wallet<H> {
         let addresses: Vec<_> = self.addresses.iter().map(|a| a.script_pubkey()).collect();
         let events = self.client.subscribe();
 
+        self.client.connect(net::SocketAddr::new(net::IpAddr::V4(net::Ipv4Addr::new(127, 0, 0, 1)), 18168));
+
         log::info!("Waiting for peers..");
         self.client.wait_for_peers(1, Services::Chain)?;
 

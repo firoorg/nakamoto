@@ -217,7 +217,7 @@ impl Mapper {
         debug_assert!(height >= self.filter_height);
 
         if matched {
-            log::debug!("Filter matched for block #{}", height);
+            log::info!("Filter matched for block #{}", height);
             self.pending.insert(height);
         }
         self.filter_height = height;

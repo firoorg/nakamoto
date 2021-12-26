@@ -322,7 +322,6 @@ impl<U: Handshake + SetTimeout + Connect + Disconnect + Events> PeerManager<U> {
             }
             Link::Outbound => {
                 let nonce = self.rng.u64(..);
-                eprintln!("Time: {}, Nonce: {}", local_time, nonce);
                 self.upstream.version(
                     addr,
                     self.version(addr, local_addr, nonce, height, local_time),
